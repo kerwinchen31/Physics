@@ -1,10 +1,17 @@
+globals [dis]
+
 to setup
   clear-all
+  resize-world -50 50 -10 10
   set-default-shape turtles "square"
-  create-turtles 1 [ setxy -5 5 ]
+  create-turtles 1 [ setxy -40 5 ]
   ask patches[
     set pcolor white
-    if (pycor < 5 and pxcor < 5)
+    if pycor < 0
+    [
+      set pcolor blue
+    ]
+    if (pycor < 5 and pxcor <= -35)
     [
       set pcolor green
     ]
@@ -14,25 +21,32 @@ end
 
 
 to go
+  tick-advance .00001
+  calc-displacement
   move-turtles
-  tick
+  display
+end
+
+to calc-displacement
+  set dis .00001 * (mb * vb / mp - muNotG * ticks)
+  if dis < 0
+  [
+    set dis 0
+  ]
 end
 
 to move-turtles
   ask turtles [
     set heading 90
-    if (xcor < 4)
-    [
-      fd 1
-    ]
+    fd dis
   ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
 10
-647
-448
+1531
+292
 -1
 -1
 13.0
@@ -45,10 +59,10 @@ GRAPHICS-WINDOW
 1
 1
 1
--16
-16
--16
-16
+-50
+50
+-10
+10
 0
 0
 1
@@ -88,6 +102,50 @@ NIL
 NIL
 NIL
 1
+
+INPUTBOX
+20
+134
+175
+194
+mb
+1.0
+1
+0
+Number
+
+INPUTBOX
+27
+217
+182
+277
+vb
+200.0
+1
+0
+Number
+
+INPUTBOX
+32
+306
+187
+366
+mp
+20.0
+1
+0
+Number
+
+INPUTBOX
+39
+392
+194
+452
+muNotG
+10.0
+1
+0
+Number
 
 @#$#@#$#@
 ## WHAT IS IT?
