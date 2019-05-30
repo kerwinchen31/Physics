@@ -1,4 +1,4 @@
-globals [dis]
+globals [dis acc inc]
 
 to setup
   clear-all
@@ -11,7 +11,7 @@ to setup
     [
       set pcolor blue
     ]
-    if (pycor < 5 and pxcor <= -35)
+    if (pycor < 5 );;and pxcor <= -35)
     [
       set pcolor green
     ]
@@ -27,8 +27,14 @@ to go
   display
 end
 
+to calc-acceleration
+  set acc (mb * vb * (cos (180 - theta) + sin (180 - theta))) / (mp * tNot) - muNotG
+end
+
 to calc-displacement
-  set dis .00001 * (mb * vb / mp - muNotG * ticks)
+  ;;set dis .00001 * (mb * vb / mp - muNotG * ticks)
+  calc-acceleration
+  set dis .00001 * (mb * vb / mp + acc * ticks)
   if dis < 0
   [
     set dis 0
@@ -37,8 +43,20 @@ end
 
 to move-turtles
   ask turtles [
-    set heading 90
+    ;;set heading 90
+    ;;shoot
+    if theta = 180
+    [ set heading 90]
+    if theta = 0
+    [set heading 270]
+
     fd dis
+  ]
+end
+
+to shoot
+  ask turtles [
+    hatch 1
   ]
 end
 @#$#@#$#@
@@ -146,6 +164,38 @@ muNotG
 1
 0
 Number
+
+INPUTBOX
+264
+344
+413
+404
+theta
+56.0
+1
+0
+Number
+
+INPUTBOX
+468
+350
+617
+410
+tNot
+5.0
+1
+0
+Number
+
+CHOOSER
+687
+339
+825
+384
+direction
+direction
+"left" "right"
+0
 
 @#$#@#$#@
 ## WHAT IS IT?
