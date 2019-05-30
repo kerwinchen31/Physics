@@ -6,12 +6,12 @@ to setup
   set-default-shape turtles "square"
   create-turtles 1 [ setxy -40 5 ]
   ask patches[
-    set pcolor white
+    set pcolor black
     if pycor < 0
     [
       set pcolor blue
     ]
-    if (pycor < 5 );;and pxcor <= -35)
+    if (pycor < 5 and (abs pxcor) <= land)
     [
       set pcolor green
     ]
@@ -19,12 +19,33 @@ to setup
   reset-ticks
 end
 
+to load
+    ask patches[
+    set pcolor white
+    if pycor < 0
+    [
+      set pcolor blue
+    ]
+    if (pycor < 5 and (abs pxcor) <= land)
+    [
+      set pcolor green
+    ]
+  ]
+end
 
 to go
+  reset-ticks
   tick-advance .00001
   calc-displacement
   move-turtles
   display
+  while [ dis != 0] [
+    tick-advance .00001
+    calc-displacement
+    move-turtles
+    display
+  ]
+  reset-ticks
 end
 
 to calc-acceleration
@@ -45,12 +66,14 @@ to move-turtles
   ask turtles [
     ;;set heading 90
     ;;shoot
+    set label dis
     if theta = 180
     [ set heading 90]
     if theta = 0
     [set heading 270]
 
     fd dis
+    ;;stamp
   ]
 end
 
@@ -94,7 +117,7 @@ BUTTON
 102
 NIL
 go
-T
+NIL
 1
 T
 OBSERVER
@@ -138,7 +161,7 @@ INPUTBOX
 182
 277
 vb
-200.0
+1000.0
 1
 0
 Number
@@ -149,7 +172,7 @@ INPUTBOX
 187
 366
 mp
-20.0
+50.0
 1
 0
 Number
@@ -160,7 +183,7 @@ INPUTBOX
 194
 452
 muNotG
-10.0
+11.0
 1
 0
 Number
@@ -171,7 +194,7 @@ INPUTBOX
 413
 404
 theta
-56.0
+0.0
 1
 0
 Number
@@ -196,6 +219,52 @@ direction
 direction
 "left" "right"
 0
+
+INPUTBOX
+901
+332
+1056
+392
+land
+40.0
+1
+0
+Number
+
+BUTTON
+161
+43
+224
+76
+NIL
+load
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+PLOT
+1167
+348
+1367
+498
+plot 1
+time
+NIL
+0.0
+10.0
+0.0
+1.0E-4
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot count turtles"
 
 @#$#@#$#@
 ## WHAT IS IT?
