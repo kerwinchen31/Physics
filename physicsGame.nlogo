@@ -1,17 +1,18 @@
 globals [dis acc inc]
+turtles-own [disGraph]
 
 to setup
   clear-all
-  resize-world -50 50 -10 10
+  resize-world -40 40 -10 10
   set-default-shape turtles "square"
-  create-turtles 1 [ setxy -40 5 ]
+  create-turtles 1 [ setxy -35 0 ]
   ask patches[
     set pcolor black
     if pycor < 0
     [
-      set pcolor blue
+      set pcolor red
     ]
-    if (pycor < 5 and (abs pxcor) <= land)
+    if (pycor < 0 and (abs pxcor) <= land)
     [
       set pcolor green
     ]
@@ -19,25 +20,16 @@ to setup
   reset-ticks
 end
 
-to load
-    ask patches[
-    set pcolor white
-    if pycor < 0
-    [
-      set pcolor blue
-    ]
-    if (pycor < 5 and (abs pxcor) <= land)
-    [
-      set pcolor green
-    ]
-  ]
+to start-game
 end
 
 to go
   reset-ticks
   tick-advance .00001
   calc-displacement
+  ;;tick-advance .00001
   move-turtles
+  shoot
   display
   while [ dis != 0] [
     tick-advance .00001
@@ -45,11 +37,16 @@ to go
     move-turtles
     display
   ]
+  ask turtles
+  [
+    stamp
+  ]
   reset-ticks
 end
 
 to calc-acceleration
-  set acc (mb * vb * (cos (180 - theta) + sin (180 - theta))) / (mp * tNot) - muNotG
+ ;; set acc ((mb * vb * (cos (180 - theta) + sin (180 - theta))) / (mp * tNot) - muNotG)
+  set acc ((mb * vb ) / (mp * tNot)) - muNotG
 end
 
 to calc-displacement
@@ -66,7 +63,8 @@ to move-turtles
   ask turtles [
     ;;set heading 90
     ;;shoot
-    set label dis
+    ;;set disGraph dis
+    ;;set label disGraph
     if theta = 180
     [ set heading 90]
     if theta = 0
@@ -79,14 +77,14 @@ end
 
 to shoot
   ask turtles [
-    hatch 1
+    hatch 1  [fd 5]
   ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
 10
-1531
+1271
 292
 -1
 -1
@@ -97,11 +95,11 @@ GRAPHICS-WINDOW
 1
 1
 0
+0
+0
 1
-1
-1
--50
-50
+-40
+40
 -10
 10
 0
@@ -194,7 +192,7 @@ INPUTBOX
 413
 404
 theta
-0.0
+180.0
 1
 0
 Number
@@ -226,27 +224,10 @@ INPUTBOX
 1056
 392
 land
-40.0
+5.0
 1
 0
 Number
-
-BUTTON
-161
-43
-224
-76
-NIL
-load
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
 
 PLOT
 1167
@@ -257,14 +238,25 @@ plot 1
 time
 NIL
 0.0
-10.0
+1.0
 0.0
-1.0E-4
+1.0E-8
 true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot count turtles"
+"default" 1.0 0 -16777216 true "" "plot [disGraph] of turtle 0  * 10000000"
+
+MONITOR
+422
+462
+479
+507
+dis
+[label] of turtle 0
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
