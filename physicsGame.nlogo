@@ -1,11 +1,14 @@
-globals [dis acc inc]
-turtles-own [disGraph]
+globals [dis acc inc bulletNum]
+mans-own [disGraph]
+breed [bullets bullet]
+breed [mans man]
 
 to setup
   clear-all
   resize-world -40 40 -10 10
-  set-default-shape turtles "square"
-  create-turtles 1 [ setxy -35 0 ]
+  set-default-shape mans "square"
+  set-default-shape bullets "dot"
+  create-mans 1 [ setxy -35 0 ]
   ask patches[
     set pcolor black
     if pycor < 0
@@ -26,32 +29,33 @@ end
 to go
   reset-ticks
   tick-advance .00001
-  calc-displacement
+  calc-man-displacement
   ;;tick-advance .00001
-  move-turtles
+  move-mans
   shoot
   display
-  while [ dis != 0] [
+  while [[(abs xcor)] of bullet (bulletNum + 1) < max-pxcor][move-bullet]
+  kill-bullet
+  while [ dis != 0 ][;;or [(abs xcor)] of bullet (bulletNum + 1) < max-pxcor] [
     tick-advance .00001
-    calc-displacement
-    move-turtles
+    ;;move-bullet
+    calc-man-displacement
+    move-mans
+    ;;move-bullet
     display
   ]
-  ask turtles
-  [
-    stamp
-  ]
+  ;;kill-bullet
   reset-ticks
 end
 
-to calc-acceleration
+to calc-man-acceleration
  ;; set acc ((mb * vb * (cos (180 - theta) + sin (180 - theta))) / (mp * tNot) - muNotG)
   set acc ((mb * vb ) / (mp * tNot)) - muNotG
 end
 
-to calc-displacement
+to calc-man-displacement
   ;;set dis .00001 * (mb * vb / mp - muNotG * ticks)
-  calc-acceleration
+  calc-man-acceleration
   set dis .00001 * (mb * vb / mp + acc * ticks)
   if dis < 0
   [
@@ -59,8 +63,8 @@ to calc-displacement
   ]
 end
 
-to move-turtles
-  ask turtles [
+to move-mans
+  ask mans [
     ;;set heading 90
     ;;shoot
     ;;set disGraph dis
@@ -75,10 +79,37 @@ to move-turtles
   ]
 end
 
-to shoot
-  ask turtles [
-    hatch 1  [fd 5]
+to move-bullet
+  ask bullets [
+    ;set color white
+    ;    if theta = 180
+    ;    [ set heading 270]
+    ;    if theta = 0
+    ;    [set heading 90]
+    fd vb * ticks * -1
   ]
+end
+
+to shoot
+  ask mans [
+    hatch-bullets 1 [set color white]
+  ]
+  ask bullets [
+;    set color white
+;;    if theta = 180
+;;    [ set heading 270]
+;;    if theta = 0
+;;    [set heading 90]
+;    fd vb * .00001
+  ]
+end
+
+to kill-bullet
+  ask bullets [
+    stamp
+    die
+  ]
+  set bulletNum bulletNum + 1
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -107,23 +138,6 @@ GRAPHICS-WINDOW
 1
 ticks
 30.0
-
-BUTTON
-83
-69
-146
-102
-NIL
-go
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
 
 BUTTON
 48
@@ -192,7 +206,7 @@ INPUTBOX
 413
 404
 theta
-180.0
+0.0
 1
 0
 Number
@@ -257,6 +271,23 @@ dis
 17
 1
 11
+
+BUTTON
+129
+85
+192
+118
+NIL
+go
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -377,7 +408,7 @@ Circle -7500403 true true 0 0 300
 dot
 false
 0
-Circle -7500403 true true 90 90 120
+Circle -7500403 true true 135 135 30
 
 face happy
 false
