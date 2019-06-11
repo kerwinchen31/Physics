@@ -1,4 +1,4 @@
-globals [dis acc inc bulletNum]
+globals [dis acc inc bulletNum level]
 mans-own [disGraph]
 breed [bullets bullet]
 breed [mans man]
@@ -17,13 +17,41 @@ to setup
     ]
     if (pycor < 0 and (abs pxcor) <= land)
     [
-      set pcolor green
+      set pcolor yellow ;;green
     ]
   ]
   reset-ticks
 end
 
-to start-game
+
+to progress
+  set level level + 1
+  reform-land
+end
+
+
+to check-status
+  ask mans [
+    ;;ask patch-at 0 -1 [ set pcolor yellow]
+    if [pcolor] of patch-at 0 -1 = red
+    [
+      die
+      ;;user-message (word "You have died. Press setup to restart")
+    ]
+    if [pcolor] of patch-at 0 -1 = yellow
+    [
+      ;;progress
+    ]
+  ]
+end
+
+to reform-land
+  ask patches [
+    if (abs pxcor) <= 40 - 5 * level and pycor < 0
+    [set pcolor green]
+    if (abs pxcor) > 40 - 5 * level and pycor < 0
+    [set pcolor red]
+  ]
 end
 
 to go
@@ -46,17 +74,19 @@ to go
   ]
   ;;kill-bullet
   reset-ticks
+  check-status
+  progress
 end
 
 to calc-man-acceleration
- ;; set acc ((mb * vb * (cos (180 - theta) + sin (180 - theta))) / (mp * tNot) - muNotG)
-  set acc ((mb * vb ) / (mp * tNot)) - muNotG
+ ;; set acc ((mb * (abs vb) * (cos (180 - theta) + sin (180 - theta))) / (mp * tNot) - muNotG)
+  set acc ((mb * (abs vb) ) / (mp * tNot)) - muNotG
 end
 
 to calc-man-displacement
-  ;;set dis .00001 * (mb * vb / mp - muNotG * ticks)
+  ;;set dis .00001 * (mb * (abs vb) / mp - muNotG * ticks)
   calc-man-acceleration
-  set dis .00001 * (mb * vb / mp + acc * ticks)
+  set dis .00001 * (mb * (abs vb) / mp + acc * ticks)
   if dis < 0
   [
     set dis 0
@@ -86,7 +116,7 @@ to move-bullet
     ;    [ set heading 270]
     ;    if theta = 0
     ;    [set heading 90]
-    fd vb * ticks * -1
+    fd (abs vb) * ticks * -1
   ]
 end
 
@@ -100,7 +130,7 @@ to shoot
 ;;    [ set heading 270]
 ;;    if theta = 0
 ;;    [set heading 90]
-;    fd vb * .00001
+;    fd (abs vb) * .00001
   ]
 end
 
@@ -173,7 +203,7 @@ INPUTBOX
 182
 277
 vb
-1000.0
+10.0
 1
 0
 Number
@@ -238,7 +268,7 @@ INPUTBOX
 1056
 392
 land
-5.0
+35.0
 1
 0
 Number
@@ -288,6 +318,13 @@ NIL
 NIL
 NIL
 1
+
+OUTPUT
+582
+438
+822
+492
+13
 
 @#$#@#$#@
 ## WHAT IS IT?
