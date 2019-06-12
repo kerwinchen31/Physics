@@ -170,6 +170,14 @@ to kill-bullet
   ]
   set bulletNum bulletNum + 1
 end
+
+to answer
+  let d (abs ((base-loc - [xcor] of man 0)))
+  let a (mb / mp) ^ 2
+  let b (2 * d * mb) / (mp * tNot)
+  let c -2 * mu * gravity * d
+  print ((-1 * b + sqrt((b ^ 2) - (4 * a * c)))/ (2 * a))
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
@@ -221,7 +229,7 @@ INPUTBOX
 182
 277
 vb
-1000.0
+198.0
 1
 0
 Number
@@ -274,13 +282,51 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot [xcor] of man 0"
+"default" 1.0 0 -16777216 true "" "plot (abs (base-loc - [xcor] of man 0))"
 
 BUTTON
-131
-25
-198
-58
+50
+315
+123
+348
+NIL
+answer
+NIL
+1
+T
+OBSERVER
+NIL
+C
+NIL
+NIL
+1
+
+MONITOR
+33
+306
+136
+351
+distance away
+(abs (base-loc - [xcor] of man 0))
+17
+1
+11
+
+TEXTBOX
+191
+305
+341
+370
+mass of crate: 50 kg\nmass of bullet = 1 kg\ngravity = 9.81 m/s^2\ntime of contact force in gun = 5 s\n
+12
+0.0
+0
+
+BUTTON
+133
+19
+199
+52
 shoot
 go
 NIL
@@ -292,17 +338,6 @@ NIL
 NIL
 NIL
 1
-
-MONITOR
-86
-316
-184
-361
-distance away
-base-loc - [xcor] of man 0
-17
-1
-11
 
 @#$#@#$#@
 ## WHAT IS IT?
