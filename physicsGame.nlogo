@@ -1,4 +1,4 @@
-globals [dis acc inc bulletNum level ready? base-loc tNot gravity mu mp mb]
+globals [dis acc inc bulletNum level ready? base-loc tNot gravity mu mp mb countTicks]
 mans-own [disGraph]
 breed [bullets bullet]
 breed [mans man]
@@ -258,22 +258,51 @@ mu
 1
 20
 
+PLOT
+403
+367
+603
+517
+plot 1
+NIL
+NIL
+0.0
+1.0
+0.0
+1.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot [xcor] of man 0"
+
 BUTTON
-130
-17
-196
-50
-Shoot
+131
+25
+198
+58
+shoot
 go
 NIL
 1
 T
 OBSERVER
 NIL
-S
+NIL
 NIL
 NIL
 1
+
+MONITOR
+86
+316
+184
+361
+distance away
+base-loc - [xcor] of man 0
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
