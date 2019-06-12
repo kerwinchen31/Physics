@@ -1,4 +1,4 @@
-globals [dis acc inc bulletNum level]
+globals [dis acc inc bulletNum level ready? base-loc tNot gravity mu mp mb]
 mans-own [disGraph]
 breed [bullets bullet]
 breed [mans man]
@@ -6,18 +6,33 @@ breed [mans man]
 to setup
   clear-all
   resize-world -40 40 -10 10
-  set-default-shape mans "square"
+  set-default-shape mans "crate"
   set-default-shape bullets "dot"
+  set tNot 5
+  set mb 1
+  set mp 50
+  set mu random-float 1
+  set gravity 9.81
+  set ready? false
   create-mans 1 [ setxy -35 0 ]
+  set base-loc random (40 - 5 * (level + 1) - 2) * one-of [1 -1]
+  ask mans
+  [set color 28
+  set size 1.5
+  ]
   ask patches[
     set pcolor black
     if pycor < 0
     [
       set pcolor red
     ]
-    if (pycor < 0 and (abs pxcor) <= land)
+    if (pycor < 0 and (abs pxcor) <= 35)
     [
-      set pcolor yellow ;;green
+      set pcolor green
+    ]
+    if (pxcor = base-loc or pxcor = base-loc - 1 or pxcor = base-loc + 1) and pycor = -1
+    [
+      set pcolor yellow
     ]
   ]
   reset-ticks
@@ -25,10 +40,24 @@ end
 
 
 to progress
-  set level level + 1
-  reform-land
+  if ready?
+  [
+    set level level + 1
+    reform-land
+    reposition-mans
+    reset-mu
+  ]
+  set ready? false
 end
 
+to reposition-mans
+  ask mans
+  [ setxy (40 - 5 * (level + 1)) * -1 0]
+end
+
+to reset-mu
+  set mu random-float 1
+end
 
 to check-status
   ask mans [
@@ -36,21 +65,27 @@ to check-status
     if [pcolor] of patch-at 0 -1 = red
     [
       die
+      user-message (word "There are " count turtles " turtles.")
       ;;user-message (word "You have died. Press setup to restart")
     ]
     if [pcolor] of patch-at 0 -1 = yellow
     [
-      ;;progress
+      set ready? true
     ]
   ]
 end
 
 to reform-land
+  set base-loc random (40 - 5 * (level + 1) - 2) * one-of [1 -1]
   ask patches [
-    if (abs pxcor) <= 40 - 5 * level and pycor < 0
+    if (abs pxcor) <= 40 - 5 * (level + 1) and pycor < 0
     [set pcolor green]
-    if (abs pxcor) > 40 - 5 * level and pycor < 0
+    if (abs pxcor) > 40 - 5 * (level + 1) and pycor < 0
     [set pcolor red]
+    if (pxcor = base-loc or pxcor = base-loc - 1 or pxcor = base-loc + 1) and pycor = -1
+    [
+      set pcolor yellow
+    ]
   ]
 end
 
@@ -79,12 +114,12 @@ to go
 end
 
 to calc-man-acceleration
- ;; set acc ((mb * (abs vb) * (cos (180 - theta) + sin (180 - theta))) / (mp * tNot) - muNotG)
-  set acc ((mb * (abs vb) ) / (mp * tNot)) - muNotG
+ ;; set acc ((mb * (abs vb) * (cos (180 - theta) + sin (180 - theta))) / (mp * tNot) - mu * gravity)
+  set acc ((mb * (abs vb) ) / (mp * tNot)) - mu * gravity
 end
 
 to calc-man-displacement
-  ;;set dis .00001 * (mb * (abs vb) / mp - muNotG * ticks)
+  ;;set dis .00001 * (mb * (abs vb) / mp - mu * gravity * ticks)
   calc-man-acceleration
   set dis .00001 * (mb * (abs vb) / mp + acc * ticks)
   if dis < 0
@@ -99,9 +134,11 @@ to move-mans
     ;;shoot
     ;;set disGraph dis
     ;;set label disGraph
-    if theta = 180
+    ;;if theta = 180
+    if Shooting_Direction = "left"
     [ set heading 90]
-    if theta = 0
+    if Shooting_Direction = "right"
+    ;;if theta = 0
     [set heading 270]
 
     fd dis
@@ -123,14 +160,6 @@ end
 to shoot
   ask mans [
     hatch-bullets 1 [set color white]
-  ]
-  ask bullets [
-;    set color white
-;;    if theta = 180
-;;    [ set heading 270]
-;;    if theta = 0
-;;    [set heading 90]
-;    fd (abs vb) * .00001
   ]
 end
 
@@ -187,144 +216,64 @@ NIL
 1
 
 INPUTBOX
-20
-134
-175
-194
-mb
-1.0
-1
-0
-Number
-
-INPUTBOX
 27
 217
 182
 277
 vb
-10.0
-1
-0
-Number
-
-INPUTBOX
-32
-306
-187
-366
-mp
-50.0
-1
-0
-Number
-
-INPUTBOX
-39
-392
-194
-452
-muNotG
-11.0
-1
-0
-Number
-
-INPUTBOX
-264
-344
-413
-404
-theta
-0.0
-1
-0
-Number
-
-INPUTBOX
-468
-350
-617
-410
-tNot
-5.0
+1000.0
 1
 0
 Number
 
 CHOOSER
-687
-339
-825
-384
-direction
-direction
+46
+68
+195
+113
+Shooting_Direction
+Shooting_Direction
 "left" "right"
 0
 
-INPUTBOX
-901
-332
-1056
-392
-land
-35.0
-1
+MONITOR
+18
+124
+89
+205
+Level
+level + 1
 0
-Number
-
-PLOT
-1167
-348
-1367
-498
-plot 1
-time
-NIL
-0.0
-1.0
-0.0
-1.0E-8
-true
-false
-"" ""
-PENS
-"default" 1.0 0 -16777216 true "" "plot [disGraph] of turtle 0  * 10000000"
+1
+20
 
 MONITOR
-422
-462
-479
-507
-dis
-[label] of turtle 0
-17
+101
+123
+187
+204
+NIL
+mu
+4
 1
-11
+20
 
 BUTTON
-129
-85
-192
-118
-NIL
+130
+17
+196
+50
+Shoot
 go
 NIL
 1
 T
 OBSERVER
 NIL
-NIL
+S
 NIL
 NIL
 1
-
-OUTPUT
-582
-438
-822
-492
-13
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -437,6 +386,20 @@ Polygon -7500403 true true 200 193 197 249 179 249 177 196 166 187 140 189 93 19
 Polygon -7500403 true true 73 210 86 251 62 249 48 208
 Polygon -7500403 true true 25 114 16 195 9 204 23 213 25 200 39 123
 
+crate
+false
+0
+Rectangle -7500403 true true 45 45 255 255
+Rectangle -16777216 false false 45 45 255 255
+Rectangle -6459832 false false 60 60 240 240
+Line -6459832 false 180 60 180 240
+Line -6459832 false 150 60 150 240
+Line -6459832 false 120 60 120 240
+Line -6459832 false 210 60 210 240
+Line -6459832 false 90 60 90 240
+Polygon -7500403 true true 75 240 240 75 240 60 225 60 60 225 60 240
+Polygon -6459832 false false 60 225 60 240 75 240 240 75 240 60 225 60
+
 cylinder
 false
 0
@@ -445,7 +408,7 @@ Circle -7500403 true true 0 0 300
 dot
 false
 0
-Circle -7500403 true true 135 135 30
+Circle -7500403 true true 120 120 60
 
 face happy
 false
