@@ -1,30 +1,36 @@
-globals [dis acc inc bulletNum level ready? base-loc tNot gravity mu mp mb countTicks]
-mans-own [disGraph]
+globals [dis acc inc bulletNum level ready? base-loc tNot gravity mu mp mb countTicks numBullets score died?]
+patches-own [danger]
 breed [bullets bullet]
 breed [mans man]
+breed [monsters monster]
 
 to setup
   clear-all
+  user-message (word "introduce game \n by kerwin and vian")
+  user-message (word " explane \n rules \n hello")
   resize-world -40 40 -10 10
   set-default-shape mans "crate"
   set-default-shape bullets "dot"
+  set-default-shape monsters "monster"
   set tNot 5
   set mb 1
   set mp 50
   set mu random-float 1
+  set numBullets 5
   set gravity 9.81
   set ready? false
+  set died? false
   create-mans 1 [ setxy -35 0 ]
   set base-loc random (40 - 5 * (level + 1) - 2) * one-of [1 -1]
   ask mans
   [set color 28
-  set size 1.5
+  set size 2;;1.5
   ]
   ask patches[
-    set pcolor black
+    set pcolor 86
     if pycor < 0
     [
-      set pcolor red
+      set pcolor 95
     ]
     if (pycor < 0 and (abs pxcor) <= 35)
     [
@@ -34,18 +40,28 @@ to setup
     [
       set pcolor yellow
     ]
+    set danger random (6)
+    if pcolor = 95 and danger = 2
+    [sprout-monsters 1]
   ]
+    ask monsters
+  [
+    set color black
+    set size 2]
   reset-ticks
 end
 
 
 to progress
-  if ready?
+  if ready? and level = 5
+  [ end-game ]
+  if ready? and level < 5
   [
     set level level + 1
     reform-land
     reposition-mans
     reset-mu
+    set numBullets 5
   ]
   set ready? false
 end
@@ -62,17 +78,20 @@ end
 to check-status
   ask mans [
     ;;ask patch-at 0 -1 [ set pcolor yellow]
-    if [pcolor] of patch-at 0 -1 = red
+    if [pcolor] of patch-at 0 -1 = 95
     [
+      ;;user-message (word "There are " count turtles " turtles.")
+      set died? true
+      user-message (word "You have died. Please try again")
       die
-      user-message (word "There are " count turtles " turtles.")
-      ;;user-message (word "You have died. Press setup to restart")
     ]
     if [pcolor] of patch-at 0 -1 = yellow
     [
       set ready? true
     ]
   ]
+  if died?
+  [setup]
 end
 
 to reform-land
@@ -81,7 +100,7 @@ to reform-land
     if (abs pxcor) <= 40 - 5 * (level + 1) and pycor < 0
     [set pcolor green]
     if (abs pxcor) > 40 - 5 * (level + 1) and pycor < 0
-    [set pcolor red]
+    [set pcolor 95]
     if (pxcor = base-loc or pxcor = base-loc - 1 or pxcor = base-loc + 1) and pycor = -1
     [
       set pcolor yellow
@@ -95,7 +114,8 @@ to go
   calc-man-displacement
   ;;tick-advance .00001
   move-mans
-  shoot
+  if numBullets > 0 [
+    shoot
   display
   while [[(abs xcor)] of bullet (bulletNum + 1) < max-pxcor][move-bullet]
   kill-bullet
@@ -106,6 +126,7 @@ to go
     move-mans
     ;;move-bullet
     display
+  ]  ;;[user-message("Game Over! Out of Bullets")]
   ]
   ;;kill-bullet
   reset-ticks
@@ -158,8 +179,9 @@ to move-bullet
 end
 
 to shoot
-  ask mans [
+  ask mans[
     hatch-bullets 1 [set color white]
+    set numBullets numBullets - 1
   ]
 end
 
@@ -169,6 +191,10 @@ to kill-bullet
     die
   ]
   set bulletNum bulletNum + 1
+end
+
+to end-game
+  user-message (word "You have won the game! Congrats on having no life")
 end
 
 to answer
@@ -229,7 +255,7 @@ INPUTBOX
 182
 277
 vb
-198.0
+100.0
 1
 0
 Number
@@ -242,7 +268,7 @@ CHOOSER
 Shooting_Direction
 Shooting_Direction
 "left" "right"
-0
+1
 
 MONITOR
 18
@@ -266,24 +292,6 @@ mu
 1
 20
 
-PLOT
-403
-367
-603
-517
-plot 1
-NIL
-NIL
-0.0
-1.0
-0.0
-1.0
-true
-false
-"" ""
-PENS
-"default" 1.0 0 -16777216 true "" "plot (abs (base-loc - [xcor] of man 0))"
-
 BUTTON
 50
 315
@@ -302,10 +310,10 @@ NIL
 1
 
 MONITOR
-33
-306
-136
-351
+34
+309
+137
+354
 distance away
 (abs (base-loc - [xcor] of man 0))
 17
@@ -316,17 +324,28 @@ TEXTBOX
 191
 305
 341
-370
+398
 mass of crate: 50 kg\nmass of bullet = 1 kg\ngravity = 9.81 m/s^2\ntime of contact force in gun = 5 s\n
 12
 0.0
 0
 
+MONITOR
+72
+396
+154
+441
+# of bullets
+numBullets
+17
+1
+11
+
 BUTTON
-133
-19
-199
-52
+135
+23
+202
+56
 shoot
 go
 NIL
@@ -556,6 +575,18 @@ true
 0
 Line -7500403 true 150 0 150 150
 
+monster
+false
+0
+Polygon -7500403 true true 75 150 90 195 210 195 225 150 255 120 255 45 180 0 120 0 45 45 45 120
+Circle -16777216 true false 165 60 60
+Circle -16777216 true false 75 60 60
+Polygon -7500403 true true 225 150 285 195 285 285 255 300 255 210 180 165
+Polygon -7500403 true true 75 150 15 195 15 285 45 300 45 210 120 165
+Polygon -7500403 true true 210 210 225 285 195 285 165 165
+Polygon -7500403 true true 90 210 75 285 105 285 135 165
+Rectangle -7500403 true true 135 165 165 270
+
 pentagon
 false
 0
@@ -581,6 +612,19 @@ Polygon -7500403 true true 165 180 165 210 225 180 255 120 210 135
 Polygon -7500403 true true 135 105 90 60 45 45 75 105 135 135
 Polygon -7500403 true true 165 105 165 135 225 105 255 45 210 60
 Polygon -7500403 true true 135 90 120 45 150 15 180 45 165 90
+
+shark
+false
+0
+Polygon -7500403 true true 283 153 288 149 271 146 301 145 300 138 247 119 190 107 104 117 54 133 39 134 10 99 9 112 19 142 9 175 10 185 40 158 69 154 64 164 80 161 86 156 132 160 209 164
+Polygon -7500403 true true 199 161 152 166 137 164 169 154
+Polygon -7500403 true true 188 108 172 83 160 74 156 76 159 97 153 112
+Circle -16777216 true false 256 129 12
+Line -16777216 false 222 134 222 150
+Line -16777216 false 217 134 217 150
+Line -16777216 false 212 134 212 150
+Polygon -7500403 true true 78 125 62 118 63 130
+Polygon -7500403 true true 121 157 105 161 101 156 106 152
 
 sheep
 false
