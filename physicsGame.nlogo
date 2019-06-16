@@ -1,4 +1,4 @@
-globals [dis acc inc bulletNum level ready? base-loc tNot gravity mu mp mb countTicks numBullets score died?]
+globals [dis acc inc bulletNum level ready? base-loc tNot gravity mu mp mb countTicks numBullets score died? bulletsUsed]
 patches-own [danger]
 breed [bullets bullet]
 breed [mans man]
@@ -6,8 +6,7 @@ breed [monsters monster]
 
 to setup
   clear-all
-  user-message (word "introduce game \n by kerwin and vian")
-  user-message (word " explane \n rules \n hello")
+  user-message (word "Welcome To Our Game! \n By Kerwin and Vian")
   resize-world -40 40 -10 10
   set-default-shape mans "crate"
   set-default-shape bullets "dot"
@@ -20,11 +19,12 @@ to setup
   set gravity 9.81
   set ready? false
   set died? false
+  set bulletsUsed 0
   create-mans 1 [ setxy -35 0 ]
   set base-loc random (40 - 5 * (level + 1) - 2) * one-of [1 -1]
   ask mans
   [set color 28
-  set size 2;;1.5
+  set size 1.5
   ]
   ask patches[
     set pcolor 86
@@ -42,12 +42,17 @@ to setup
     ]
     set danger random (6)
     if pcolor = 95 and danger = 2
-    [sprout-monsters 1]
+    [sprout-monsters 1
+        set bulletNum bulletNum + 1
+    ]
   ]
     ask monsters
   [
     set color black
-    set size 2]
+    set size 2
+    stamp
+    die
+  ]
   reset-ticks
 end
 
@@ -57,14 +62,32 @@ to progress
   [ end-game ]
   if ready? and level < 5
   [
+    user-message (word "Good job! \n You may proceed to the next level")
     set level level + 1
     reform-land
     reposition-mans
     reset-mu
     set numBullets 5
+    ask monsters [die]
+    ask patches [add-monsters]
   ]
   set ready? false
 end
+
+to add-monsters
+  set danger random (6)
+  if pcolor = 95 and danger = 2
+  [sprout-monsters 1]
+  ask monsters
+  [
+    set color black
+    set size 2
+    set bulletNum bulletNum + 1
+    stamp
+    die
+  ]
+end
+
 
 to reposition-mans
   ask mans
@@ -82,7 +105,8 @@ to check-status
     [
       ;;user-message (word "There are " count turtles " turtles.")
       set died? true
-      user-message (word "You have died. Please try again")
+      set score level * 1000 - 10 * bulletsUsed
+      user-message (word "You have died. \n Final Score:" score " \n Please try again")
       die
     ]
     if [pcolor] of patch-at 0 -1 = yellow
@@ -126,12 +150,18 @@ to go
     move-mans
     ;;move-bullet
     display
-  ]  ;;[user-message("Game Over! Out of Bullets")]
+  ]
   ]
   ;;kill-bullet
   reset-ticks
   check-status
   progress
+  if numBullets = 0
+      [
+        set score level * 1000 - 10 * bulletsUsed
+        user-message(word "Game Over! Out of Bullets \n Final Score:" score "\n Please try again.")
+    setup
+    ]
 end
 
 to calc-man-acceleration
@@ -183,18 +213,20 @@ to shoot
     hatch-bullets 1 [set color white]
     set numBullets numBullets - 1
   ]
+  set bulletsUsed bulletsUsed + 1
 end
 
 to kill-bullet
   ask bullets [
-    stamp
+    ;;stamp
     die
   ]
   set bulletNum bulletNum + 1
 end
 
 to end-game
-  user-message (word "You have won the game! Congrats on having no life")
+  set score level * 1000 - 10 * bulletsUsed
+  user-message (word "You have won the game! \n Remember to thank Ms. Sharaf for being such a good teacher \n Final Score: " score)
 end
 
 to answer
@@ -233,10 +265,10 @@ ticks
 30.0
 
 BUTTON
-48
-18
-114
-51
+33
+20
+99
+53
 NIL
 setup\n
 NIL
@@ -250,31 +282,31 @@ NIL
 1
 
 INPUTBOX
-27
-217
-182
-277
+30
+211
+185
+271
 vb
-100.0
+10.0
 1
 0
 Number
 
 CHOOSER
-46
-68
-195
-113
+34
+62
+183
+107
 Shooting_Direction
 Shooting_Direction
 "left" "right"
-1
+0
 
 MONITOR
-18
-124
-89
-205
+27
+121
+93
+202
 Level
 level + 1
 0
@@ -282,10 +314,10 @@ level + 1
 20
 
 MONITOR
-101
-123
-187
-204
+100
+121
+186
+202
 NIL
 mu
 4
@@ -293,10 +325,10 @@ mu
 20
 
 BUTTON
-50
+67
+282
+140
 315
-123
-348
 NIL
 answer
 NIL
@@ -310,42 +342,42 @@ NIL
 1
 
 MONITOR
-34
-309
-137
-354
-distance away
+31
+276
+185
+321
+distance away (m)
 (abs (base-loc - [xcor] of man 0))
 17
 1
 11
 
 TEXTBOX
-191
-305
-341
-398
-mass of crate: 50 kg\nmass of bullet = 1 kg\ngravity = 9.81 m/s^2\ntime of contact force in gun = 5 s\n
-12
+236
+327
+757
+453
+vb = velocity of bullet    mass of crate = 50 kg\nmass of bullet = 1 kg      gravity = 9.81 m/s^2     time of contact force in gun = 5 s\n
+20
 0.0
 0
 
 MONITOR
-72
-396
-154
-441
-# of bullets
+27
+332
+192
+377
+# of Bullets Remaining
 numBullets
 17
 1
 11
 
 BUTTON
-135
-23
-202
-56
+117
+20
+183
+53
 shoot
 go
 NIL
@@ -356,6 +388,16 @@ NIL
 NIL
 NIL
 NIL
+1
+
+TEXTBOX
+404
+301
+629
+343
+Important Notes
+20
+0.0
 1
 
 @#$#@#$#@
@@ -579,8 +621,8 @@ monster
 false
 0
 Polygon -7500403 true true 75 150 90 195 210 195 225 150 255 120 255 45 180 0 120 0 45 45 45 120
-Circle -16777216 true false 165 60 60
-Circle -16777216 true false 75 60 60
+Circle -1 true false 165 60 60
+Circle -1 true false 75 60 60
 Polygon -7500403 true true 225 150 285 195 285 285 255 300 255 210 180 165
 Polygon -7500403 true true 75 150 15 195 15 285 45 300 45 210 120 165
 Polygon -7500403 true true 210 210 225 285 195 285 165 165
